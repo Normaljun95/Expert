@@ -3,7 +3,7 @@ from pymongo import MongoClient
 import re
 
 '''
-@ Method Name       : check_College_v4
+@ Method Name       : check_College_v5
 @ Method explain    : 저자소속을 대학DB(CollegeName)에서 검색 + 국내 영문 대학명 처리(reg.match())
 @ Method Fixes      : 소유격('s) 문제 처리 + 분교 임시조치
     @ univ0         : 저자 소속 (ex. 한국대학교000연구소산학협력단 한국대학교 빅데이터협동과정)
@@ -15,6 +15,7 @@ import re
     @ error_set     : 검색이 안된 소속 set
     @ answer_set    : 검색 성공한 소속 set
     @ query_set     : 검색 성공한 소속(answer_set)의 쿼리(univ_query)
+    @ loc           : 학과 앞에 university 처리를 위한 위치 변수
 '''
 
 def isEnglishOrKorean(input_s):
@@ -49,6 +50,8 @@ try:
 
     if isEnglishOrKorean(univ0) == 'e':
         univ0 = univ0.upper()
+        loc = univ0.find("UNIVERSITY")
+        univ0 = univ0[:(loc+10)]
         univ0 = univ0.replace('.', ',')
         univ = univ0.split(', ')
 
