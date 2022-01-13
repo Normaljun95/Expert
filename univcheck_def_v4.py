@@ -38,8 +38,8 @@ error_set = []
 #### 추가 부분
 branch_set = ['성균관대학교', '건국대학교', '한양대학교']
 #### 여기까지
-# univ0 = "Department of NCW Engineering, AJOU University"
-univ0 = "AJOU University Department of NCW Engineering"
+univ0 = "Department of NCW Engineering, AJOU University"
+# univ0 = "AJOU University Department of NCW Engineering"
 
 univ1 = re.sub("산학협력단|병원","",univ0)
 univ2 = re.sub("대학교","대학교 ",univ1)

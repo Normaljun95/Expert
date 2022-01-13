@@ -7,6 +7,7 @@ import re
 @ Method explain    : 저자소속을 대학DB(CollegeName)에서 검색 + 국내 영문 대학명 처리(reg.match())
 @ Method Fixes      : 소유격('s) 문제 처리 + 분교 임시조치
     @ univ0         : 저자 소속 (ex. 한국대학교000연구소산학협력단 한국대학교 빅데이터협동과정)
+    @ univ0_1       : 영어 소속 짤림 방지 전처리용 변수
     @ univ1         : 1차(산학협력단, 병원) 전처리 (ex. 한국대학교000연구소 한국대학교 빅데이터협동과정)
     @ univ2         : 2차(대학교 ) 전처리 (ex. 한국대학교 000연구소 한국대학교 빅데이터협동과정)
     @ univ          : 3차(중복처리 및 리스트 요소로 분할) 전처리 (ex. ['한국대학교', '000연구소', '빅데이터협동과정'])
@@ -40,6 +41,9 @@ error_set = []
 branch_set = ['성균관대학교', '건국대학교', '한양대학교']
 #### 여기까지
 # univ0 = "Department of NCW Engineering, AJOU University"
+# univ0 = "Pusan National University Dept. of Electrical and Computer Engineering"
+
+# univ0 = "School of Electronic Engineering, Kumoh National Institute of Technology"
 univ0 = "AJOU University Department of NCW Engineering"
 
 univ1 = re.sub("산학협력단|병원","",univ0)
@@ -50,10 +54,13 @@ try:
 
     if isEnglishOrKorean(univ0) == 'e':
         univ0 = univ0.upper()
-        loc = univ0.find("UNIVERSITY")
-        univ0 = univ0[:(loc+10)]
-        univ0 = univ0.replace('.', ',')
-        univ = univ0.split(', ')
+        if "," not in univ0:
+            loc = univ0.find("UNIVERSITY")
+            univ0_1 = univ0[:(loc+10)]
+            univ = univ0_1.replace('.', ',').split(', ')
+
+        else:
+            univ = univ0.replace('.', ',').split(', ')
 
     else:
         univ = univ2.replace(",", "").split()

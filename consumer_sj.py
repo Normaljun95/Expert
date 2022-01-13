@@ -328,10 +328,14 @@ class Consumer(threading.Thread):
         try:
             if self.isEnglishOrKorean(univ0) == 'e':
                 univ0 = univ0.upper()
-                loc = univ0.find("UNIVERSITY")
-                univ0 = univ0[:(loc+10)]
-                univ0 = univ0.replace('.', ',')
-                univ = univ0.split(', ')
+                if "," not in univ0:
+                    loc = univ0.find("UNIVERSITY")
+                    univ0_1 = univ0[:(loc+10)]
+                    univ = univ0_1.replace('.', ',').split(', ')
+
+                else:
+                    univ = univ0.replace('.', ',').split(', ')
+                    
             else:
                 univ = univ2.replace(",", "").split()
                 univ = list(set(univ))   
