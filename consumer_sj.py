@@ -6,6 +6,8 @@ from multiprocessing import Process
 from pymongo import MongoClient
 from kafka import KafkaConsumer
 from json import loads
+import os
+
 
 
 from pymongo import MongoClient
@@ -121,6 +123,7 @@ class Consumer(threading.Thread):
 
             """ #7. 분석기 실행 (Process caller)"""
             if self.dbs['QueryKeyword'].find_one({"_id":keyId})['state'] == 0 :
+                
                 self.dbs['QueryKeyword'].update({"_id": keyId}, {'$set': {"progress": 0, "state": 1, "data": count, "crawl_time": dt.strftime("%Y-%m-%d %H:%M:%S"), "isPartial" : isPartial}})
                 Process(target= self.runAnalyzer, args=(keyId,)).start()
 
@@ -178,6 +181,15 @@ class Consumer(threading.Thread):
             p = Process(target= acl.run)
             processList.append(p)
             p.start()
+        
+        self.dbs['public_QueryKeyword'].find_one_and_update({"_id": keyId}, {"$inc": {"completed": 1}})
+        check_site = self.dbs['public_QueryKeyword'].find_one({"_id": keyId})
+        if check_site["completed"] == check_site["total"] :     
+            os.system(f'python3 Filtering.py 0 {keyId}')
+        
+        
+        ### 필터링
+        
         for p in processList :
             p.join()
 
@@ -360,14 +372,14 @@ class Consumer(threading.Thread):
             univ_query = univName.find_one(eval(univs))
 
             if univ_query is None:
-                print("Search inst None")
+                # print("Search inst None")
                 return univ0, False
             else:
                 return univ_query['originalName'], True #univ0, univ_query
             
         except SyntaxError as e:
-            print(e)
-            print(univ0)
+            # print(e)
+            # print(univ0)
             return univ0, False
 
 
