@@ -32,11 +32,12 @@ for item in items:
     title = item.find('title')
     title = re.sub('<.+?>', '', str(title), 0).strip()
     title = cleanText(title)
-    print(title)
+    # print(title)
     
     authors = item.find_all('author')
     for author in authors:
         for name in author.find('name'):
             if input_name == name:
-                print(name)
-
+                # print(name)
+                for url in author.find('url'):
+                    print(url[50:])
