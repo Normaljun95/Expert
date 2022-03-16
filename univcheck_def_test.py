@@ -14,7 +14,17 @@ import re
     @ univ_query    : 쿼리 결과 값 ('_id', 'originalName', 'inputName') -> 리스트 요소들을 돌면서 하나라도 검색이 가능하면, OK
 '''
 
-univ0 = "충북대 생활과학연구소"
+univ0 = ""
+
+def isEnglishOrKorean(input_s):
+    k_count = 0
+    e_count = 0
+    for c in input_s:
+        if ord('가') <= ord(c) <= ord('힣'):
+            k_count+=1
+        elif ord('a') <= ord(c.lower()) <= ord('z'):
+            e_count+=1
+    return "k" if k_count>1 else "e"
 
 def check_college(univ0):
 

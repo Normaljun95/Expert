@@ -1,4 +1,3 @@
-
 import requests, re
 from bs4 import BeautifulSoup
 import xmltodict
@@ -29,8 +28,6 @@ if rescode == 200:
     
     item = xmldict['root']['result']['items']['item']
     
-    # print(item['authors']['author'])
-    
     if isinstance(item['authors']['author'], list):
         name_list = []
         id_list = []
@@ -45,9 +42,6 @@ if rescode == 200:
                 rawData['author'] = name_list[z]
                 rawData['author_id'] = id_list[z]
             
-        # rawData['author'] = ";".join(name_list)
-        # rawData['author_id'] = ";".join(id_list)
-        
     else:
         rawData['author'] = item['authors']['author']['name']
         rawData['author_id'] =",".join(re.findall('\d+',item['authors']['author']['url']))
