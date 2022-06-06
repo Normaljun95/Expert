@@ -1,7 +1,9 @@
 from pymongo import MongoClient
+from http import client
 from selenium import webdriver # 1004 수정
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
 import os
 from bs4 import BeautifulSoup
 import re
@@ -26,7 +28,9 @@ class ntis_crawling:
         # 여기는 정상준 설정
         self.chrome_options = webdriver.ChromeOptions()
         self.chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        self.driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", chrome_options=self.chrome_options)
+        #self.driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", chrome_options=self.chrome_options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        self.client = MongoClient('mongodb://203.255.92.141:27017', authSource='admin')
         # 여기까지 정상준 설정
         self.author = {}
         self.paper = []
@@ -35,8 +39,8 @@ class ntis_crawling:
         self.infolist = []
         self.cnt = 0
         self.name = "유재수"
-        self.ntis_author_path = 'C:/Users/jongwoo/selenium_test/'
-        self.Affiliated = '충북대학교1'
+        self.ntis_author_path = 'C:/Users/sangjun/selenium_test/'
+        self.Affiliated = '충북대학교'
         self.send_name = ''
         self.send_ktitle = []
 
@@ -78,7 +82,7 @@ class ntis_crawling:
                 self.send_name = name
                 # print(self.send_name)
             except Exception as e:
-                print("이름역영이 잘못됐습니다.")
+                # print("이름역영이 잘못됐습니다.")
 
 
             
@@ -95,7 +99,7 @@ class ntis_crawling:
                 
             except Exception as e:
                 print(e)
-                print("학력 없습니다.")
+                # print("학력 없습니다.")
 
             
             
@@ -138,11 +142,11 @@ class ntis_crawling:
             time.sleep(1)
             self.driver.find_element_by_xpath('//*[@id="downChk"]/button').click()                   # 다운로드 클릭
             time.sleep(5)
-            print("논문 다운완료")
+            # print("논문 다운완료")
                            
         except Exception as e:
             print(e)
-            print("논문 다운로드 선택창 오류")
+            # print("논문 다운로드 선택창 오류")
 
         try:
             workbook = xlrd.open_workbook(self.ntis_author_path+'논문목록.xls')
@@ -163,11 +167,11 @@ class ntis_crawling:
                 self.paper.append(a)
             
             print(self.paper)
-            print('논문 엑셀데이터가져오기 성공')
+            # print('논문 엑셀데이터가져오기 성공')
             time.sleep(1)
             os.remove(self.ntis_author_path+'논문목록.xls')
             time.sleep(3)
-            print('다운로드파일 삭제')
+            # print('다운로드파일 삭제')
 
             send_name = self.send_name
             send_ktitle = self.send_ktitle
@@ -205,11 +209,11 @@ class ntis_crawling:
            time.sleep(1)
            self.driver.find_element_by_xpath('//*[@id="downChk"]/button').click()                   # 다운로드 클릭
            time.sleep(5)
-           print("RnD과제 다운완료")
+        #    print("RnD과제 다운완료")
 
         except Exception as e:
             print(e)
-            print("rnd 과제다운로드 선택창 오류")
+            # print("rnd 과제다운로드 선택창 오류")
         
 
         try:
@@ -250,52 +254,48 @@ class ntis_crawling:
 
             self.driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[2]/button[1]').click()
 
-            self.driver.switch_to_window(self.driver.window_handles[1])  # 로그인창으로 전환 이거는 빼면 작동 x
+            self.driver.switch_to_window(self.driver.window_handles[1])
             self.driver.find_element_by_xpath('/html/body/div/form/label[2]/input').send_keys("jeonjongwoo30")
             self.driver.find_element_by_xpath('/html/body/div/form/label[4]/input').send_keys("jjw01430143!") #아이디와 비밀번호
             self.driver.find_element_by_xpath('/html/body/div/form/input').click()
             time.sleep(2)
 
-            self.driver.switch_to_window(self.driver.window_handles[0]) #혹시 모를 화면 전환. 빼도 상관없음
+            self.driver.switch_to_window(self.driver.window_handles[0])
             time.sleep(1)
             self.driver.find_element_by_xpath('/html/body/div[4]/div[1]/div[2]/div/input[2]').click()
             time.sleep(1)
             self.driver.find_element_by_xpath('/html/body/div[4]/div[4]/div/div[2]/fieldset/div/table/tbody/tr[1]/td[1]/input').send_keys(self.name)
-        #     self.driver.find_element_by_xpath('/html/body/div[4]/div[4]/div/div[2]/fieldset/div/table/tbody/tr[3]/td[1]/input').send_keys(self.idAgency)
             self.driver.find_element_by_xpath('/html/body/div[4]/div[4]/div/div[3]/input[1]').click() # 상세 검색 클릭
             time.sleep(1)
             try:
                 a = self.driver.find_element_by_xpath("/html/body/div[5]/div/div/div[3]/form/div[3]/div[2]/div[1]/div/a[1]/span")
-                # print('검색결과가 있습니다.')
+                
             except Exception as e:
                 print("검색한 사람이 없습니다.")
                 self.driver.close
-            
-            
-            # self.driver.find_element_by_xpath('/html/body/div[5]/div/div/div[3]/form/div[3]/div[2]/div[1]/div/a[1]').click()
             
             if a.text == self.name:
                 b = self.driver.find_element_by_xpath('//*[@id="humanSearchFormDetail"]/div[3]/div[2]/div[1]/div/span[1]')
                 c = b.text
                 affiliatedre = re.sub('[^가-힣]', '', c)
                 if self.Affiliated == affiliatedre:
-                    print('있으니까 넘어갑시다.')
+                    # print('있으니까 넘어갑시다.')
                     pass
                 else:
                     self.cnt = 1
                     time.sleep(3)
-                    print("기존저자가 아닙니다. 논문크롤합니다.")     
+                    # print("기존저자가 아닙니다. 논문크롤합니다.")     
             else: 
                 b = self.driver.find_element_by_xpath('//*[@id="humanSearchFormDetail"]/div[3]/div[2]/div[2]/div/span[1]')
                 c = b.text
                 affiliated = re.sub('[^가-힣]', '', c)
                 if self.Affiliated == affiliated:
-                    print('있으니까 넘어갑시다.')
+                    # print('있으니까 넘어갑시다.')
                     pass
                 else:
                     self.cnt = 1
                     time.sleep(3)
-                    print("기존저자가 아닙니다. 논문크롤합니다.")  
+                    # print("기존저자가 아닙니다. 논문크롤합니다.")  
         
             
             # self.driver.switch_to_window(self.driver.window_handles[1])
@@ -330,7 +330,7 @@ class ntis_crawling:
               #---------------------처음에 들어간 저자가 다른 사람일 경우------------------        
             if self.cnt == 1:
                 retry_paper_error_cnt = 0
-                print("다시 시작")
+                # print("다시 시작")
                 self.driver.switch_to_window(self.driver.window_handles[0]) #혹시 모를 화면 전환. 빼도 상관없음
                 self.driver.find_element_by_xpath('/html/body/div[4]/div[1]/div[2]/div/input[2]').click()
                 time.sleep(1)
@@ -346,7 +346,7 @@ class ntis_crawling:
                 
                 time.sleep(2)
                 self.driver.find_element_by_xpath('//*[@id="rschDevPjtBtn"]').click()       #rnd 파트
-                print("rnd함수로이동")
+                # print("rnd함수로이동")
                 self.rnd_crawl()
                 # self.author["rnd"] = self.papers
                 # print(self.test)
@@ -363,7 +363,7 @@ class ntis_crawling:
                     self.driver.find_element_by_xpath('//*[@id="paperBtn"]').click()
                 except Exception as e:
                     retry_paper_error_cnt =1
-                    print("논문 버튼이 없습니다.")
+                    # print("논문 버튼이 없습니다.")
 
                 if retry_paper_error_cnt != 1:                  #여기서부터는 논문파트 
                     self.crawl_paper()
@@ -383,11 +383,11 @@ class ntis_crawling:
                 # self.main_title(soup)
 
 
-                print('/?/?/?/?/')
+                # print('/?/?/?/?/')
 
         except Exception as e:
             print(e)
-            print("start crawling 오류")
+            # print("start crawling 오류")
             # time.sleep(100000)
 
 
@@ -464,5 +464,35 @@ class ntis_crawling:
         print('총노검색결과 count= ' + str(count))
         
     # ----------------------------------------------------------------------------
+    
+    def ScienceonKci(self, send_name, send_ktitle):
+        domesticAPI = client['ID']['Domestic_API']
 
+        API_dict = {}
+        site = ['SCIENCEON', 'KCI']
+
+        sci_raw = client['SCIENCEON']['Rawdata']
+        kci_raw = client['KCI']['Rawdata']
+
+        result_sci = sci_raw.find_one({'$and':[{'author':{'$regex':send_name}},{'title':{'$regex':send_ktitle}}]})
+        result_kci = kci_raw.find_one({'$and':[{'author':{'$regex':send_name}},{'title':{'$regex':send_ktitle}}]})
+
+        if result_sci != None and result_kci != None:
+
+            sci_Alst = result_sci['author'].split(';')
+            kci_Alst = result_sci['author'].split(';')
+
+            sci_Aid = result_sci['author_id'].split(';')[sci_Alst.index(send_name)]
+            kci_Aid = result_kci['author_id'].split(';')[kci_Alst.index(send_name)]
+
+            API_dict['name'] = send_name
+
+            for s in range(len(site)):
+                if site[s] == 'SCIENCEON':
+                    API_dict['Author_SCIENCEON'] = sci_Aid
+                else:
+                    API_dict['Author_KCI'] = kci_Aid
+        
+        print(API_dict)
+        
 __main__()

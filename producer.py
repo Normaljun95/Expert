@@ -38,6 +38,7 @@ import shutil
 import os.path
 #import pprint
 # import async
+import html
 from multiprocessing.managers import BaseManager
 from multiprocessing import Process, Value, Array, Lock
 
@@ -83,7 +84,7 @@ class Producer:
         self.site = site
         self.korea_option = korea_option
         self.config = config
-        self.producer = KafkaProducer(bootstrap_servers= self.config["IP"] + ':9092', value_serializer=lambda x: json.dumps(x).encode('utf-8'))
+        self.producer = KafkaProducer(bootstrap_servers= self.config["IP"] + ':9092', value_serializer=lambda x: json.dumps(x).encode('utf-8'), api_version = (0,10,1))
 
         print("korea", self.korea_option)
 
@@ -773,11 +774,11 @@ class Producer:
                                     rawData['title'] = re.sub('<.+?>','',item['title'])
                                    # rawData['author'] = item['authors']['author']
                                     if "name" in  item['publication']:
-                                        rawData['journal'] = item['publication']['name']
+                                        rawData['journal'] = re.sub('<.+?>','',item['publication']['name'])
                                     else:
-                                        rawData['journal'] = item['publisher']['name']
+                                        rawData['journal'] = re,sub('<.+?>','',item['publisher']['name'])
 
-                                    rawData['issue_inst'] = item['publisher']['name']
+                                    rawData['issue_inst'] = re.sub('<.+?>','',item['publisher']['name'])
 
                                     if "pages" in item:
                                         page_search = re.findall('\d+',item['pages'])
@@ -1030,12 +1031,12 @@ class Producer:
                             cnt += 1
                             try :
                                 rawData['loop'] = cnt
-                                rawData['issue_inst'] = data['journalInfo']['publisher']
+                                rawData['issue_inst'] = html.unescape(data['journalInfo']['publisher'])
                                 rawData['journal'] = data['journalInfo']['journalTitleInfo'][0]
                                 rawData['issue_year'] = data['journalInfo']['year']
                                 rawData['id'] = data['articleInfo']['@kistiID']
-                                rawData['title'] = self.ntis_remove_html_tags(data['articleInfo']['articleTitleInfo']['articleTitle'])
-                                rawData['english_title'] = self.ntis_remove_html_tags(data['articleInfo']['articleTitleInfo']['articleTitle2'])
+                                rawData['title'] = self.ntis_remove_html_tags(html.unescape(data['articleInfo']['articleTitleInfo']['articleTitle']))
+                                rawData['english_title'] = self.ntis_remove_html_tags(html.unescape(data['articleInfo']['articleTitleInfo']['articleTitle2']))
                                 rawData['abstract'] = self.ntis_remove_html_tags(data['articleInfo']['abstractInfo'][0])
                                 rawData['english_abstract'] = ''
                                 rawData['citation'] = 0
@@ -1267,12 +1268,12 @@ class Producer:
                                 cnt += 1
                                 try :
                                     rawData['loop'] = cnt
-                                    rawData['issue_inst'] = data['journalInfo']['publisher']
+                                    rawData['issue_inst'] = html.unescape(data['journalInfo']['publisher'])
                                     rawData['journal'] = data['journalInfo']['journalTitleInfo'][0]
                                     rawData['issue_year'] = data['journalInfo']['year']
                                     rawData['id'] = data['articleInfo']['@kistiID']
-                                    rawData['title'] = self.ntis_remove_html_tags(data['articleInfo']['articleTitleInfo']['articleTitle'])
-                                    rawData['english_title'] = self.ntis_remove_html_tags(data['articleInfo']['articleTitleInfo']['articleTitle2'])
+                                    rawData['title'] = self.ntis_remove_html_tags(html.unescape(data['articleInfo']['articleTitleInfo']['articleTitle']))
+                                    rawData['english_title'] = self.ntis_remove_html_tags(html.unescape(data['articleInfo']['articleTitleInfo']['articleTitle2']))
                                     rawData['abstract'] = self.ntis_remove_html_tags(data['articleInfo']['abstractInfo'][0])
                                     rawData['english_abstract'] = ''
                                     rawData['citation'] = 0
@@ -1708,7 +1709,7 @@ class Producer:
                             if tPro >= 1.0 :
                                 tPro = 0.99
                             rawData['progress'] = tPro
-
+			    # rawData['issn'] = ''
                             # rawData['progress']    = now / total
 
                             # pp(rawData)
